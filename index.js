@@ -54,5 +54,9 @@ mongoose.connect(process.env.MONGO_URL)
     activeUsers.delete(email);
     res.json({ message: "Logout successful" });
   });
+
+app.get("/",(req,res)=>{
+  res.send("your smart home application into online")
+})
   
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
