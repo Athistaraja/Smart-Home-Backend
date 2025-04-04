@@ -48,6 +48,36 @@ mongoose.connect(process.env.MONGO_URL)
       res.status(500).json({ error: "Server error" });
     }
   });
+  app.post("/register", async (req, res) => {
+    const { fullName, email, password } = req.body;
+  
+    if (!fullName || !email || !password) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
+  
+    try {
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return res.status(409).json({ error: "Email already in use" });
+      }
+  
+      const hashedPassword = await bcrypt.hash(password, 10);
+  
+      const newUser = new User({
+        fullName,
+        email,
+        password: hashedPassword,
+      });
+  
+      await newUser.save();
+  
+      res.status(201).json({ message: "User registered successfully" });
+    } catch (err) {
+      console.error("Registration error:", err);
+      res.status(500).json({ error: "Server error" });
+    }
+  });
+  
   
   app.post("/logout", (req, res) => {
     const { email } = req.body;
