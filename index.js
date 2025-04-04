@@ -9,7 +9,7 @@ const User = require("./models/User")
 const app = express();
 app.use(express.json());
 app.use(cors());
-const PORT = 4400;
+const PORT = 4500;
 
 const activeUsers = new Set();
 
@@ -45,6 +45,39 @@ mongoose.connect(process.env.MONGO_URL)
   
       res.json({ message: "Login successful", token, fullName: user.fullName });
     } catch (err) {
+      res.status(500).json({ error: "Server error" });
+    }
+  });
+
+  app.post("/register", async (req, res) => {
+    const { fullName, email, password } = req.body;
+  
+    // Basic validation
+    if (!fullName || !email || !password) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
+  
+    try {
+      // Check if the user already exists
+      const existingUser = await User.findOne({ email });
+      if (existingUser) return res.status(400).json({ error: "User already exists" });
+  
+      // Hash password
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+  
+      // Create new user
+      const newUser = new User({
+        fullName,
+        email,
+        password: hashedPassword,
+      });
+  
+      await newUser.save();
+  
+      res.status(201).json({ message: "User registered successfully" });
+    } catch (err) {
+      console.error("Registration error:", err);
       res.status(500).json({ error: "Server error" });
     }
   });
