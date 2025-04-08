@@ -4,19 +4,21 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const User = require("./models/User")
+const User = require("./models/User");
 
 const app = express();
 app.use(express.json());
 app.use(cors());
-const PORT = 4400;
+
+const PORT = 4500;
+const JWT_SECRET = process.env.JWT_SECRET ;
 
 const activeUsers = new Set();
 
-// Connect to MongoDB
+// MongoDB Connection
 mongoose.connect(process.env.MONGO_URL)
-  .then(() => console.log("MongoDB Connected"))
-  .catch(err => console.error("MongoDB Connection Error:", err));
+  .then(() => console.log("✅ MongoDB Connected"))
+  .catch(err => console.error("❌ MongoDB Connection Error:", err));
 
 
 
@@ -48,26 +50,21 @@ mongoose.connect(process.env.MONGO_URL)
       res.status(500).json({ error: "Server error" });
     }
   });
-
   app.post("/register", async (req, res) => {
     const { fullName, email, password } = req.body;
   
-    // 1. Validate input
     if (!fullName || !email || !password) {
       return res.status(400).json({ error: "All fields are required" });
     }
   
     try {
-      // 2. Check if user exists
       const existingUser = await User.findOne({ email });
       if (existingUser) {
-        return res.status(409).json({ error: "Email already registered" });
+        return res.status(409).json({ error: "Email already in use" });
       }
   
-      // 3. Hash password
       const hashedPassword = await bcrypt.hash(password, 10);
   
-      // 4. Create and save user
       const newUser = new User({
         fullName,
         email,
@@ -76,9 +73,9 @@ mongoose.connect(process.env.MONGO_URL)
   
       await newUser.save();
   
-      res.status(201).json({ message: "Registration successful" });
+      res.status(201).json({ message: "User registered successfully" });
     } catch (err) {
-      console.error("Register Error:", err);
+      console.error("Registration error:", err);
       res.status(500).json({ error: "Server error" });
     }
   });
