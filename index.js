@@ -10,7 +10,8 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-const PORT = 4500;
+const PORT = process.env.PORT || 4500;
+
 const JWT_SECRET = process.env.JWT_SECRET ;
 
 const activeUsers = new Set();
